@@ -1,0 +1,14 @@
+*.jpg
+*.pyc
+*.mat
+*.tdsml2
+*__pycache__
+*.mp4
+*.svg
+*.pstats
+
+demo-sequences/*
+examples-demos/*
+models/*
+.vscode/*
+

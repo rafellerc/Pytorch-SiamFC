@@ -1,0 +1,4 @@
+{
+	"root_dataset": "/home/ml2/DATA/cfnet_validation_set",
+	"root_pretrained": "models"
+}

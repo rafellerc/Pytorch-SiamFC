@@ -1,0 +1,10 @@
+{
+	"net": "baseline-conv5-original",
+	"windowing": "cosine_sum",
+	"reference_sz": 127,
+	"search_sz": 255,
+	"score_sz": 33,
+	"tot_stride": 4,
+	"context": 0.5,
+	"pad_with_image_mean": true
+}

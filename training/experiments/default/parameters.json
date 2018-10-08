@@ -1,0 +1,23 @@
+{
+    "model": "BaselineEmbeddingNet",
+    "parameter_freeze":[],
+
+    "batch_size": 8,
+    "num_epochs": 1,
+    "train_epoch_size": 10000,
+    "eval_epoch_size": 10000,
+    "save_summary_steps":2,
+    "optim":"SGD",
+    "optim_kwargs":{"lr": 1e-2, "momentum":0.9},
+    "lr_decay":1,
+
+    "max_frame_sep":50,
+    "reference_sz":127,
+    "search_sz":255,
+    "final_sz": 33,
+    "upscale": 0,
+    "pos_thr": 16,
+    "neg_thr": 24,
+    "context_margin": 0.5
+
+}

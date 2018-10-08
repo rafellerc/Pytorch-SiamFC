@@ -1,0 +1,8 @@
+{
+	"n_subseq": 3,
+	"dist_threshold": 20,
+	"stop_on_failure": 0,
+	"dataset": "cfnet-validation",
+	"video": "all",
+	"start_frame": 0
+}
