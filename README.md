@@ -1,14 +1,12 @@
-# SiameseFC PyTorch implementation
+# SiameseFC PyTorch implementation
 
 ## Introduction
 
 This project is the Pytorch implementation of the object Tracker presented in
-this paper https://arxiv.org/pdf/1606.09549.pdf, and here
-https://www.robots.ox.ac.uk/~luca/siamese-fc.html (project page). The original
-version was written in matlab with the MatConvNet framework, available in
-https://github.com/bertinetto/siamese-fc (trainining and tracking), but this
+[this paper](https://arxiv.org/pdf/1606.09549.pdf), and [here](https://www.robots.ox.ac.uk/~luca/siamese-fc.html) (project page). The original
+version was written in matlab with the MatConvNet framework, available [here](https://github.com/bertinetto/siamese-fc) (trainining and tracking), but this
 python version is adapted from the TensorFlow portability (tracking only),
-available in https://github.com/torrvision/siamfc-tf .
+available [here](https://github.com/torrvision/siamfc-tf).
 
 ## Organization
 
@@ -23,7 +21,7 @@ box in each frame. The Tracker includes all the logic needed to deal with how
 to propose a search reagion for the network, how to evaluate the network's output,
 how to deal with occlusions and scale changes.
 
-###Tracking
+### Tracking
 
 The tracking part has a script designed to evaluate the metrics defined
 in the OTB paper (Object Tracking Benchmark - Yi Wu, Jongwoo Lim, and Ming-Hsuan Yang,
@@ -44,7 +42,7 @@ The 3 metrics provided are:
     Union. Its max value is 1 and minimum value is 0. The mean IOU is the mean
     of the IOU through all the frames of a sequence.
 
-###Training
+### Training
 The training portion has a main script in the root folder called train.py
 which is used to train new models in the ImageNet VID dataset, or simply evaluate
 them in its evaluation set (though we have a test set, its ground-truth annotations
@@ -55,15 +53,15 @@ its outputs and logs. Thus, inside root/training we have a folder called 'experi
 that should contain all of the folders defining each experiment. It has a default
 folder which has the default parameters that can be used by the user to define
 his own experiments. Each execution in mode 'train' trains the chosen model with
-the whole train set for the given number of epochs (see --Parameters--), and
+the whole train set for the given number of epochs (see [Parameters](#parameters)), and
 then validates it in terms of loss and the defined metrics in the eval set. The
 values for the metrics is compared to the values for previous epochs and if the
 model performs better its weights are saved in the experiment folder as 'best.pth.tar',
 and at each epoch the last weights obtained are saved as 'last.pth.tar', and both of these
 files can be loaded in further executions of the script by using the argument
-'--restore_file best' or '--restore_file last'. Values for the best and last
-models are stored in .json files 'metrics_val_best_weights.json' and
-'metrics_val_last_weights.json' respectively. The execution also produces a log
+`--restore_file best` or `--restore_file last`. Values for the best and last
+models are stored in .json files `metrics_val_best_weights.json` and
+`metrics_val_last_weights.json` respectively. The execution also produces a log
 file containing the execution information and eventual errors.
 
 ## How to Run
@@ -72,12 +70,12 @@ file containing the execution information and eventual errors.
 
 1. Get the validation video sequences available in
 https://drive.google.com/file/d/0B7Awq_aAemXQSnhBVW5LNmNvUU0/validationescribed
-in https://github.com/torrvision/siamfc-tf and uncompress it.validation
+in https://github.com/torrvision/siamfc-tf and uncompress it.
 
 2. Set the path to the root of the uncompressed validation folder in
 `Root_Dir/tracking/experiments/<your_experiments>/environment.json` in the field
 `root_dataset`. (there is a `<your_experiment>` folder called default, with
-the default values of the Parameters, for more info, see [Parameters](#Parameters))
+the default values of the Parameters, for more info, see [Parameters](#parameters))
 OBS: In case there is a `README` file inside cfnet-validation, remove it. The
 videos folder should only have folders, not files.
 
@@ -144,7 +142,7 @@ and specify a model to be restored as before. The eval execution generates
 a separate eval.log and a separate `metrics_test_best.json` containing the
 obtained performance.
 
-#Datasets
+## Datasets
 
 The dataset used for the tracker evaluation is a compilation of sequences from
 the datasets [TempleColor](http://www.dabi.temple.edu/~hbling/data/TColor-128/TColor-128.html),
@@ -169,7 +167,7 @@ The dataset used for the training is the 2015 ImageNet VID, which contains
 videos of targets where each frame is labeled with a bounding box around the
 targets.
 
-#Parameters
+## Parameters
 
 Both tracking and training scripts are defined in terms of user-defined parameters,
 which define much of their behaviour. The parameters are defined inside .json files
@@ -181,7 +179,7 @@ with its .json files and name it accordingly, placing it always inside the
 training(or tracking)/experiments folder. Here below we give a brief description
 of the basic parameters:
 
-##Tracking:
+### Tracking:
 
 1. design.json:
     * `net`: The name of the file defining the network weights being used. The
@@ -278,7 +276,7 @@ of the basic parameters:
         the videos made with the option make_video.
 
 
-##Training:
+### Training:
 
 * `model_version`: A descriptive name for your model
 * `batch_size`: The batch size in terms of reference/search region pairs. The
