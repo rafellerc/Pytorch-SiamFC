@@ -24,8 +24,7 @@ how to deal with occlusions and scale changes.
 ### Tracking
 
 The tracking part has a script designed to evaluate the metrics defined
-in the OTB paper (Object Tracking Benchmark - Yi Wu, Jongwoo Lim, and Ming-Hsuan Yang,
-available in https://www.researchgate.net/publication/273279481_Object_Tracking_Benchmark)
+in the OTB paper [Object Tracking Benchmark - Yi Wu, Jongwoo Lim, and Ming-Hsuan Yang](https://www.researchgate.net/publication/273279481_Object_Tracking_Benchmark)
 The 3 metrics provided are:
 1. Precision: The precision is defined from the center location error, which
     is the distance in pixels between the center of the prediction and the center
