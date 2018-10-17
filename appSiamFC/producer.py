@@ -82,29 +82,28 @@ class ProducerThread(Thread):
         a signal to the buffer indicating it is done and waits for the main
         thread to finish (because daemon=True it dies along with the main thread).
         """
-        with torch.no_grad():
-            while self.idx < self.seq_size:
-                dims = self.vid_dims
-                if self.resize_dims is not None:
-                    img = img_read_fcn(self.frames[self.idx])
-                    img = img_resize_fcn(img, self.resize_dims, interp='bilinear')
-                    dims = self.resize_dims
-                if self.valid_frames[self.idx]:
-                    bbox = self.denorm_bbox(self.bboxes_norm[self.idx], dims)
-                else:
-                    bbox = None
-                score_map = self.make_score_map(img)
-                data = BufferElement(score_map,
-                                     img,
-                                     self.ref,
-                                     self.valid_frames[self.idx],
-                                     self.frames[self.idx],
-                                     bbox)
-                self.buffer.put(data)
-                self.idx += 1
-            print("ProducerThread finished publishing the data")
-            # Publish a None to sinalize to the consumer that the stream has finished
-            self.buffer.put(None)
+        while self.idx < self.seq_size:
+            dims = self.vid_dims
+            if self.resize_dims is not None:
+                img = img_read_fcn(self.frames[self.idx])
+                img = img_resize_fcn(img, self.resize_dims, interp='bilinear')
+                dims = self.resize_dims
+            if self.valid_frames[self.idx]:
+                bbox = self.denorm_bbox(self.bboxes_norm[self.idx], dims)
+            else:
+                bbox = None
+            score_map = self.make_score_map(img)
+            data = BufferElement(score_map,
+                                 img,
+                                 self.ref,
+                                 self.valid_frames[self.idx],
+                                 self.frames[self.idx],
+                                 bbox)
+            self.buffer.put(data)
+            self.idx += 1
+        print("ProducerThread finished publishing the data")
+        # Publish a None to sinalize to the consumer that the stream has finished
+        self.buffer.put(None)
 
     def denorm_bbox(self, bbox_norm, img_dims):
         """ Denormalizes the bounding box, taking it from its relative values to
@@ -129,6 +128,7 @@ class ProducerThread(Thread):
         bbox[3] = int(floor(bbox[3]*img_dims[0]))
         return tuple(bbox)
 
+    @torch.no_grad()
     def make_ref(self, ctx_mode='max'):
         """ Extracts the reference image and its embedding.
 
@@ -138,30 +138,29 @@ class ProducerThread(Thread):
                 the largest of the two dimensions of the bounding box and mean
                 takes the mean.
         """
-        with torch.no_grad():
-            # Get the first valid frame index
-            ref_idx = self.valid_frames.index(True)
-            ref_frame = img_read_fcn(self.frames[ref_idx])
-            bbox = self.denorm_bbox(self.bboxes_norm[ref_idx], self.vid_dims)
-            if ctx_mode == 'max':
-                ctx_size = max(bbox[2], bbox[3])
-            elif ctx_mode == 'mean':
-                ctx_size = int((bbox[2] + bbox[3])/2)
-            # It resizes the image so that the reference image has dimensions 127x127
-            if ctx_size != 127:
-                new_H = int(self.vid_dims[0]*127/ctx_size)
-                new_W = int(self.vid_dims[1]*127/ctx_size)
-                self.resize_dims = (new_H, new_W)
-                ref_frame = img_resize_fcn(ref_frame, self.resize_dims, interp='bilinear')
-                bbox = self.denorm_bbox(self.bboxes_norm[ref_idx], self.resize_dims)
-                ctx_size = 127
-            # Set image values to the range 0-1 before feeding to the network
-            ref_frame = ref_frame/255
-            ref_center = (int((bbox[1] + bbox[3]/2)), int((bbox[0] + bbox[2]/2)))
-            ref_img = self.extract_ref(ref_frame, ref_center, ctx_size)
+        # Get the first valid frame index
+        ref_idx = self.valid_frames.index(True)
+        ref_frame = img_read_fcn(self.frames[ref_idx])
+        bbox = self.denorm_bbox(self.bboxes_norm[ref_idx], self.vid_dims)
+        if ctx_mode == 'max':
+            ctx_size = max(bbox[2], bbox[3])
+        elif ctx_mode == 'mean':
+            ctx_size = int((bbox[2] + bbox[3])/2)
+        # It resizes the image so that the reference image has dimensions 127x127
+        if ctx_size != 127:
+            new_H = int(self.vid_dims[0]*127/ctx_size)
+            new_W = int(self.vid_dims[1]*127/ctx_size)
+            self.resize_dims = (new_H, new_W)
+            ref_frame = img_resize_fcn(ref_frame, self.resize_dims, interp='bilinear')
+            bbox = self.denorm_bbox(self.bboxes_norm[ref_idx], self.resize_dims)
+            ctx_size = 127
+        # Set image values to the range 0-1 before feeding to the network
+        ref_frame = ref_frame/255
+        ref_center = (int((bbox[1] + bbox[3]/2)), int((bbox[0] + bbox[2]/2)))
+        ref_img = self.extract_ref(ref_frame, ref_center, ctx_size)
 
-            ref_tensor = numpy_to_torch_var(ref_img, device)
-            ref_embed = self.net.get_embedding(ref_tensor)
+        ref_tensor = numpy_to_torch_var(ref_img, device)
+        ref_embed = self.net.get_embedding(ref_tensor)
 
         return ref_img, ref_embed
 
