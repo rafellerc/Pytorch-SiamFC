@@ -1,3 +1,32 @@
+"""
+To execute the app first install pyqtgraph, then execute main.py
+with the following flags:
+   -d: The full path to the dataset folder, the root of the imagenet
+folder structure.
+   -n: The path to the network to be used, that is, the .pth.tar
+file containing the networks weights.
+   -t: The type of subset of the dataset, that is, 'train' or 'val'
+   -s: The sequence you want to visualize, ranging from 0-3861 for
+'train' and 0-554 for 'val'.
+   -f: The maximum framerate in fps. The actual framerate will
+depend on the processing speed of the computer.
+
+The app is divided in 4 files:
+   -main.py: The main script, it parses the user's flags, initializes
+the objects, calls the producer thread, which does all the neural
+network processing, and execute the display application in the main
+thread.
+   -display.py: defines the behaviour of the display application,
+on what to display the images, how to organize the windows, how to
+display the information, etc.
+   -producer.py: The app is organized in a threaded producer-consumer
+paradigm, so this file defines the behaviour of the producer thread,
+which reads the data from the file system and processes it through
+the network, then feeding the results to the consumer thread (the
+main thread) using a buffer queue.
+   -app_utils.py: Defines general functions used in the app.
+"""
+
 import argparse
 from queue import Queue
 

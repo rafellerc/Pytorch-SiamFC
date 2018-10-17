@@ -30,7 +30,7 @@ class TrackingGraph(object):
             print('Model set to GPU')
             self.device = torch.device("cuda")
         else:
-            torch.device("cpu")
+            self.device = torch.device("cpu")
         self.final_score_sz = hp.response_up * (design.score_sz - 1) + 1
         self.design = design
         self.env = env

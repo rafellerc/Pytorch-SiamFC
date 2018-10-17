@@ -127,11 +127,6 @@ class ImageNetVID(Dataset):
                 Note: even if save_metadata specifies a valid path, no metadata
                 files will be saved if the program is able to get the metadata
                 from metadata file.
-
-        Returns:
-            frames: (list) See build_metadata for info.
-            annotations: (list) See build_metadata for info.
-            list_idx: (list) See build_metadata for info.
         """
         # Check if not None
         if metadata_file and isfile(metadata_file):
@@ -142,6 +137,7 @@ class ImageNetVID(Dataset):
                 print("Metadata file found. Loading its content.")
                 for key, value in mdata.items():
                     setattr(self, key, value)
+                return
         # If couldn't get metadata from file, build it from scratch
         mdata = self.build_metadata()
         if save_metadata is not None:
