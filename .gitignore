@@ -11,4 +11,6 @@ demo-sequences/*
 examples-demos/*
 models/*
 .vscode/*
-
+# Ignore the experiments data, except the default parameters
+training/experiments/*
+!training/experiments/default/parameters.json
