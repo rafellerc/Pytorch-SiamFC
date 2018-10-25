@@ -2,24 +2,149 @@
 
 ## Introduction
 
-This project is the Pytorch implementation of the object Tracker presented in
-[this paper](https://arxiv.org/pdf/1606.09549.pdf), and [here](https://www.robots.ox.ac.uk/~luca/siamese-fc.html) (project page). The original
-version was written in matlab with the MatConvNet framework, available [here](https://github.com/bertinetto/siamese-fc) (trainining and tracking), but this
+This project is the Pytorch implementation of the object tracker presented in 
+[Fully-Convolutional Siamese Networks for Object Tracking](https://arxiv.org/pdf/1606.09549.pdf),
+also available at [their project page](https://www.robots.ox.ac.uk/~luca/siamese-fc.html).
+The original version was written in matlab with the MatConvNet framework, available
+[here](https://github.com/bertinetto/siamese-fc) (trainining and tracking), but this
 python version is adapted from the TensorFlow portability (tracking only),
 available [here](https://github.com/torrvision/siamfc-tf).
 
 ## Organization
 
-The project is divided into two major parts: Training and Tracking. The training
-part deals with training a Siamese Network in the task of, given a frame sequence
-of a video, matching an reference image with its corresponding position in a
-subsequent frame.
-Once the network has been trained we move to the Tracking part, which incorporates
-this network inside a program that tries to follow a target (whose bounding box
-is given in the first frame) throughout a whole video, proposing a new bounding
-box in each frame. The Tracker includes all the logic needed to deal with how
-to propose a search reagion for the network, how to evaluate the network's output,
-how to deal with occlusions and scale changes.
+The project is divided into three major parts: [**Training**](#training), [**Tracking**](#tracking) and a [**Visualization Application**](#visualization-application).
+
+## Training
+
+The main focus of this work, the **Training** part deals with the training of the Siamese Network in order to learn a similarity metric between patches, as
+described in the paper.
+
+<center>
+    <figure>    
+        <img src="images/schema.png" height="50%" width="60%"/>
+        <figcaption> The <b>Siamese Network</b> passes both images through
+        the embedding network and then does the correlation between the embeddings, as shown below.
+        </figcaption>
+    </figure>        
+</center>
+
+<center>
+    <figure>
+        <img src="images/correlation_better.gif" height="50%" width="50%">
+        <figcaption> The peak of the <b>correlation map</b> is supposed to be 
+        located at the center of the map (because the images are both centered in the target).
+        </figcaption>
+    </figure>
+</center>
+
+<center>
+    <figure>
+        <img src="images/catpair.png" height="60%" width="60%">
+        <figcaption>Here we overlay the correlation map with the search image, the peak value indicates the estimated center position of the target.
+        </figcaption>
+    </figure>
+</center>
+
+
+### How to Run - Training
+
+1. **Prerequisites:** The project was built using **python 3.6** and tested on Ubuntu 16.04 and 17.04. It was tested on a **GTX 1080 Ti** and a **GTX 950M**. Furthermore it requires [PyTorch 4.1](https://pytorch.org/). The rest of the dependencies can be installed with:  
+```
+# Tested on scipy 1.1.0
+pip install scipy
+# Tested on scikit-learn 0.20.0
+pip install scikit-learn 
+# Tested on tqdm 4.26.0
+pip install tqdm
+# Tested on tensorboardx 1.4
+pip install tensorboardx
+# Tested on imageio 2.4.1
+pip install imageio
+# To run the TensorBoard files later on install TensorFlow. 
+pip install tensorflow
+```
+(**OPTIONAL:** To accelerate the dataloading refer to [this section](#accelerating-data-loading))
+
+2. Download the ImageNet VID Dataset in http://bvisionweb1.cs.unc.edu/ILSVRC2017/download-videos-1p39.php and extract it on the folder of your choice (*OBS: data reading is done in execution time, so if available extract in your SSD partition*). You can get rid of the *test* part of the dataset. 
+
+3. For each new training we must create an *experiment folder* (the folder stores the training parameters and the training output):
+```
+# Go to the experiments folder
+cd training/experiments
+# Create your experiment folder named <EXP_NAME>
+mkdir <EXP_NAME>
+# Copy the parameter file from the default experiment folder
+cp default/parameters.json <EXP_NAME>/
+```
+4. Edit the *parameters.json* file with the desired parameters. The description of each parameter can be found [here](#training-parameters).
+5. Run the *train.py* script:
+```
+# <EXP_NAME> is the name of the experiment folder, NOT THE PATH. 
+python train.py --data_dir <FULL_PATH_TO_DATASET_ROOT> --exp_name <EXP_NAME>
+```
+<center>
+    <figure>
+        <img src="images/quick_train_screen.gif" height="60%" width="100%">
+        <figcaption>This gif illustrates the execution of the training script. It uses very few epochs just to give a feel of the execution. A serious training execution could take a whole day.
+        </figcaption>
+    </figure>
+</center>
+
+
+* Use `--time` in case you want to profile the execution times. They will be saved in the train.log file.
+
+6. The outputs will be:
+* `train.log`: The log of the training, most of which is also displayed in the terminal.
+* `metadata.train` and `metadata.val`: The metadata of the training and validation datasets, which is written on the start of the program. **Simply copy these files to any new experiment folder to save time on set up (about 15 minutes in my case).**      
+* `metrics_val_last_weights.json`: The json containing the metrics of the most recent validation epoch. Human readable.  
+* `metrics_val_best_weights.json`: The json containing the metrics of the validation epoch with the best AUC score. Human readable.   
+* `best.pth.tar` and `last.pth.tar`: Dictionary containing the state_dictionary among other informations about the model. Can be loaded again later, for
+training, validation or inference. Again *last* is the current epoch and *best* is the best one.   
+* `tensorboard`: Folder containing the **tensorboard** files summarizing the training. It is separated in a *val* and a *train* folder so that the curves can be plotted in the same plot. To launch it type: 
+```
+# You need TensorFlow's TensorBoard installed to do so.
+tensorboard --logdir <path_to_experiment_folder>/tensorboard 
+``` 
+
+<center>
+    <figure>
+        <img src="images/scalars.png" height="60%" width="60%">
+        <figcaption>The three metrics stored are the mean <b>AUC</b> of the the ROC curve of the binary classification error between the label correlation map (defined by the parameters) and the actual correlation map, as well as the <b>Center Error</b>, which is the distance in pixels between the peak position of the correlation map and the actual center. Lastly, we also plot the mean <b>Binary Cross-Entropy Loss</b>, used to optimize the model.
+        </figcaption>
+    </figure>
+</center>
+
+**OBS**: Our definition of the loss is slightly different than the author's, but should be equivalent. Refer to [Loss Definition](#loss-definition).
+<center>
+    <figure>
+        <img src="images/pairs.png" height="60%" width="60%">
+        <figcaption>We also store Ref/Search/Correlation Map trios for each epoch, for debugging and exploration reasons. They are collected in each validation epoch, thus the first image corresponds to the validation before th e first training epoch. They allow us to see the evolution of the network's estimation after each training epoch. </figcaption>
+    </figure>
+</center>
+
+**OBS:** To set the number of trios stored in each epoch, use the `--summary_samples <NUMBER_OF_TRIOS>` flag:
+```
+python train.py -s 10 -d <FULL_PATH_TO_DATASET_ROOT> -e <EXP_NAME> 
+```
+The images might take a lot of space though, especially if the number of epochs is large.
+
+### Additional Uses
+
+#### Retraining/Loading Pretrained Weights
+
+You can continue training a network or load pretrained weights by calling the train script with the flag `--restore_file <NAME_OF_MODEL>` where <NAME_OF_MODEL> is the filename **without** the *.pth.tar* extension (e.g. *best*, for *best.pth.tar*). The program then searchs for the file NAME_OF_MODEL.pth.tar inside the experiment folder and loads its state as the initial state, the rest of the training script continues normally.  
+```
+python train.py -r <NAME_OF_MODEL> -d <FULL_PATH_TO_DATASET_ROOT> -e <EXP_NAME>
+```
+
+#### Evaluation Only
+
+Once you finished training and dispose of a *.pth.tar file containing the network's weigths, you can evaluate it on the dataset by using the `--mode eval` combined with `--restore_file <NAME_OF_MODEL>`:
+```
+python train.py -m eval -r <NAME_OF_MODEL> -d <FULL_PATH_TO_DATASET_ROOT> -e <EXP_NAME>
+```
+The results of the evaluation are then stored in `metrics_test_best.json`.
+
 
 ### Tracking
 
@@ -41,31 +166,8 @@ The 3 metrics provided are:
     Union. Its max value is 1 and minimum value is 0. The mean IOU is the mean
     of the IOU through all the frames of a sequence.
 
-### Training
-The training portion has a main script in the root folder called train.py
-which is used to train new models in the ImageNet VID dataset, or simply evaluate
-them in its evaluation set (though we have a test set, its ground-truth annotations
-are not available). The execution of said script is parametrized by a set of
-parameters contained in a .json file. To organize the parameters and outputs of
-each execution we define an 'experiment' as the parameters of the execution plus
-its outputs and logs. Thus, inside root/training we have a folder called 'experiments'
-that should contain all of the folders defining each experiment. It has a default
-folder which has the default parameters that can be used by the user to define
-his own experiments. Each execution in mode 'train' trains the chosen model with
-the whole train set for the given number of epochs (see [Parameters](#parameters)), and
-then validates it in terms of loss and the defined metrics in the eval set. The
-values for the metrics is compared to the values for previous epochs and if the
-model performs better its weights are saved in the experiment folder as 'best.pth.tar',
-and at each epoch the last weights obtained are saved as 'last.pth.tar', and both of these
-files can be loaded in further executions of the script by using the argument
-`--restore_file best` or `--restore_file last`. Values for the best and last
-models are stored in .json files `metrics_val_best_weights.json` and
-`metrics_val_last_weights.json` respectively. The execution also produces a log
-file containing the execution information and eventual errors.
 
-## How to Run
-
-### Tracking:
+### How to Run - Tracking
 
 1. Get the validation video sequences available in
 https://drive.google.com/file/d/0B7Awq_aAemXQSnhBVW5LNmNvUU0/validationescribed
@@ -113,33 +215,6 @@ OBS: The current implementation of the visualization using matplotlib is very
 slow, so it slows down a lot the whole execution. I count on reimplementing it
 using PyQtGraph to get faster plotting.
 
-### Training
-1. Assuming you have a copy of the ImageNet VID dataset, first create your
-experiment folder inside root/training/experiments and create a file called
-parameters.json with the same contents of the one inside experiments/default.
-Change your parameters accordingly (see --Parameters--).
-
-2. Assuming it's your first time executing the script, execute train.py
-with the arguments:
-    * `--mode train`
-    * `--data_dir <path_to_imagenet_root>`
-    * `--exp_name <name_of_your_experiment_folder>` (NOT THE FULL PATH)
-    * `--timer`     (in case you want to profile the execution times. They will
-                    be saved in the train.log file)
-
-3. After your execution is complete you will have new files in your experiment
-folder containing the models weights and its performance. A new execution in
-train mode in the same experiment folder would overwrite your weight files, but
-you can continue your training by executing the train script and further indicating:
-    * `--restore_file best`     (Best model thus far in terms of metrics)
-        or
-    * `--restore_file last`     (Model output of the last epoch)
-
-4. To simply evaluate your model in the eval set, execute in mode eval:
-    `--mode eval`
-and specify a model to be restored as before. The eval execution generates
-a separate eval.log and a separate `metrics_test_best.json` containing the
-obtained performance.
 
 ## Datasets
 
@@ -178,7 +253,47 @@ with its .json files and name it accordingly, placing it always inside the
 training(or tracking)/experiments folder. Here below we give a brief description
 of the basic parameters:
 
-### Tracking:
+### Training Parameters:
+
+* `model`: The Embedding Network to be used as the branch of the Siamese Network, the models are defined in [models.py](training/models.py). The models available are *BaselineEmbeddingNet*, *VGG11EmbeddingNet_5c*, *VGG16EmbeddingNet_8c*.
+* `parameter_freeze`: A list of the layers of the Embedding Net that will be frozen (parameters will not be change). The numeration refers the *nn.Sequential* class that defines the Network in [models.py](training/models.py). E.g. [0, 1, 4, 5] with *BaselineEmbeddingNet* freezes the two first convolutional layers (0 and 4) along with the two first BatchNorm layers (1 and 5).
+* `batch_size`: The batch size in terms of reference/search region pairs. The
+    authors of the paper suggested using a batch of 8 pairs.
+* `num_epochs`: Total number of training epochs. One validation epoch is done before training starts and after each training epoch.
+* `train_epoch_size`: The number of iterations for each train epoch. If it is
+    bigger than the total number of frames in the dataset, the epoch size
+    defaults to the whole dataset, warning the user of it.
+* `eval_epoch_size`: The number of iterations for each validation epoch. If it
+    is bigger than the total number of frames in the dataset, the epoch size
+    defaults to the whole dataset, warning the user of it.
+* `save_summary_steps`: The number of batches between the metrics evaluation.
+    If set to 0 all batches are evaluated in terms of the metrics after the
+    loss is calculated. If set to 10, every tenth batch is evaluated.
+* `optim`: The optimizer to be used during training. Options include *SGD* for
+    stochastic gradient descent, and *Adam* for Adaptative Momentum.
+* `optim_kwargs`: The keywords associated with each optimizer's initialization.
+    It is itself a dictionary, and should follow the pytorch documentation.
+    For example, if optim is `SGD` we could specify it as
+    {`lr`: 1e-3, `momentum`:0.9}, for a learning rate of 0.001 and momentum
+    of 0.9. Each optimizer has its available keywords, cf.
+    https://pytorch.org/docs/stable/optim.html for more info.
+* `max_frame_sep`: The maximum frame separation, the maximum distance between
+    frames in each pairs chosen by the dataset. Default value is 50.
+* `reference_sz`: The reference region size in pixels. Default is 127.
+* `search_sz`: The search region size in pixels. Default is 255.
+* `final_sz`: The final size after the pairs are passed throught the model.
+* `upscale`: A boolean to indicate if the network should have a bilinear upscale
+    layer. OBS: Might slow training a lot.
+* `pos_thr`: The positive threshold distance in the label, the threshold of
+    the distance to the center that is considered a positive pixel.
+* `neg_thr`: The negative threshold distance in the label, the threshold of
+    the distance to the center that is considered a negative pixel. Every
+    pixel with a distance between the positive and negative thresholds is
+    considered neutral, and is not penalised either way.
+* `context_margin`: The context margin for the reference region.
+
+
+### Tracking Parameters:
 
 1. design.json:
     * `net`: The name of the file defining the network weights being used. The
@@ -275,41 +390,6 @@ of the basic parameters:
         the videos made with the option make_video.
 
 
-### Training:
+### Accelerating Data Loading
 
-* `model_version`: A descriptive name for your model
-* `batch_size`: The batch size in terms of reference/search region pairs. The
-    authors of the paper suggested using a batch of 8 pairs.
-* `num_epochs`: Total number of epochs.
-* `train_epoch_size`: The number of iterations for each train epoch. If it is
-    bigger than the total number of frames in the dataset, the epoch size
-    defaults to the whole dataset, warning the user of it.
-* `eval_epoch_size`: The number of iterations for each validation epoch. If it
-    is bigger than the total number of frames in the dataset, the epoch size
-    defaults to the whole dataset, warning the user of it.
-* `save_summary_steps`: The number of batches between the metrics evaluation.
-    If set to 0 all batches are evaluated in terms of the metrics after the
-    loss is calculated. If set to 10, every tenth batch is evaluated.
-* `optim`: The optimizer to be used during training. Options include *SGD* for
-    stochastic gradient descent, and *Adam* for Adaptative Momentum.
-* `optim_kwargs`: The keywords associated with each optimizer's initialization.
-    It is itself a dictionary, and should follow the pytorch documentation.
-    For example, if optim is `SGD` we could specify it as
-    {`lr`: 1e-3, `momentum`:0.9}, for a learning rate of 0.001 and momentum
-    of 0.9. Each optimizer has its available keywords, cf.
-    https://pytorch.org/docs/stable/optim.html for more info.
-* `max_frame_sep`: The maximum frame separation, the maximum distance between
-    frames in each pairs chosen by the dataset. Default value is 50.
-* `reference_sz`: The examplar region size in pixels.
-* `search_sz`: The search region size in pixels.
-* `final_sz`: The final size after the pairs are passed throught the model.
-* `upscale`: A boolean to indicate if the network should have a bilinear upscale
-    layer. OBS: Might slow training a lot.
-* `pos_thr`: The positive threshold distance in the label, the threshold of
-    the distance to the center that is considered a positive pixel.
-* `neg_thr`: The negative threshold distance in the label, the threshold of
-    the distance to the center that is considered a negative pixel. Every
-    pixel with a distance between the positive and negative thresholds is
-    considered neutral, and is not penalised either way.
-* `context_margin`: The context margin for the examplar region.
-
+### Loss Definition
