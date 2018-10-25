@@ -388,7 +388,7 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params,
     metrics_mean['loss'] = loss_avg()
     if summ_maker:
         for (m_name, m_value) in metrics_mean.items():
-            summ_maker.add_scalar('train', m_name, m_value)
+            summ_maker.add_epochwise_scalar('train', m_name, m_value)
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
     logging.info("- Train metrics: " + metrics_string)
     if params.timer:
