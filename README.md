@@ -45,6 +45,28 @@ described in the paper.
     </figure>
 </center>
 
+### Results - Training
+
+The only training metric comparable between different parameters and implementations is the average *center error*  (or *center displacement*). The authors provide this metric in **appendix B** of their paper [Learning feed-forward one-shot learners](https://arxiv.org/pdf/1606.05233.pdf), which is 7.40 pixels for validation and 6.26 pixels for training.
+
+Our Baseline Results are shown below:
+
+<center>
+    <figure>
+        <img src="images/results_train.png" height="60%" width="100%">
+        <figcaption>
+        </figcaption>
+    </figure>
+</center>
+
+We are around 4 pixels behind the authors, which we hypothesize that is mainly due to:
+
+* The lack of a bicubic upscaling layer on the correlation map, which effectively causes our correlation map to have a resolution 4 times lower than the original image (due to the network's stride).
+* The lack of class normalization of the loss to deal with the unbalance between negative and positive elements on the correlation map label (way more negative than positive positions). 
+
+On the other hand, **we are way less prone to overfitting**, because we sample the pairs differently on each training epoch, as opposed to the authors, that choose all the pairs beforehand and use the same pairs on each training epoch.
+
+This trained model is made available as *BaselinePretrained.pth.tar*.
 
 ### How to Run - Training
 
@@ -241,6 +263,17 @@ The dataset used for the training is the 2015 ImageNet VID, which contains
 videos of targets where each frame is labeled with a bounding box around the
 targets.
 
+## Visualization Application
+
+<center>
+    <figure>
+        <img src="images/viz_app.gif" height="60%" width="80%">
+        <figcaption>
+        </figcaption>
+    </figure>
+</center>
+[Coming Soon]
+
 ## Parameters
 
 Both tracking and training scripts are defined in terms of user-defined parameters,
@@ -392,4 +425,8 @@ of the basic parameters:
 
 ### Accelerating Data Loading
 
+[Coming Soon]
+
 ### Loss Definition
+
+[Coming Soon]
