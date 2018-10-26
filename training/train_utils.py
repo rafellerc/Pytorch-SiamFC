@@ -187,9 +187,11 @@ def save_checkpoint(state, is_best, checkpoint):
     If is_best==True, also saves checkpoint + 'best.pth.tar'
     Args:
         state: (dict) contains model's state_dict, may contain other keys such
-        as epoch, optimizer state_dict is_best: (bool) True if it is the best
-        model seen till now checkpoint: (string) folder where parameters are
-        to be saved
+            as epoch, optimizer state_dict 
+        is_best: (bool) True if it is the best
+            model seen till now 
+        checkpoint: (string) folder where parameters are
+            to be saved
     """
     filepath = os.path.join(checkpoint, 'last.pth.tar')
     if not os.path.exists(checkpoint):
