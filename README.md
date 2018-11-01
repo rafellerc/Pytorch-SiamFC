@@ -84,10 +84,27 @@ pip install tensorboardx
 pip install imageio
 # To run the TensorBoard files later on install TensorFlow. 
 pip install tensorflow
+
+# To run the visualization app you need PyQt5 and pyqtgraph
+# Tested on pyqt 5.6.0 
+pip install pyqt5
+# Tested on pyqtgraph 0.10.0
+pip install pyqtgraph
 ```
+In case you have Anaconda, install the conda virtual environment with:
+```
+# Used conda 4.5.11
+conda env create -f environment.yaml
+conda activate siamfc
+
+# The pyqtgraph is not included and needs to be installed with pip
+pip install pyqtgraph
+
+```
+
 (**OPTIONAL:** To accelerate the dataloading refer to [this section](#accelerating-data-loading))
 
-2. Download the ImageNet VID Dataset in http://bvisionweb1.cs.unc.edu/ILSVRC2017/download-videos-1p39.php and extract it on the folder of your choice (*OBS: data reading is done in execution time, so if available extract in your SSD partition*). You can get rid of the *test* part of the dataset. 
+2. Download the ImageNet VID Dataset in http://bvisionweb1.cs.unc.edu/ILSVRC2017/download-videos-1p39.php and extract it on the folder of your choice (*OBS: data reading is done in execution time, so if available extract the dataset in your SSD partition*). You can get rid of the *test* part of the dataset, since it has no Annotations. 
 
 3. For each new training we must create an *experiment folder* (the folder stores the training parameters and the training output):
 ```
