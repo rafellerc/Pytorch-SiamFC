@@ -6,7 +6,7 @@ import pyqtgraph as pg
 import pyqtgraph.ptime as ptime
 from matplotlib import cm
 
-from app_utils import make_gaussian_map, rgb2gray
+from appSiamFC.app_utils import make_gaussian_map, rgb2gray
 
 
 class MainUI(object):

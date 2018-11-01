@@ -1,6 +1,6 @@
 import glob
 import os
-from os.path import join
+from os.path import join, basename
 
 import numpy as np
 
@@ -24,7 +24,7 @@ def get_sequence(seq_num, imagenet_dir, set_type='train'):
 
     for frame in sorted(os.listdir(sequence_path)):
         frame_path = join(dir_annot, sequence_path, frame)
-        annot, w, h, valid = get_annotations(dir_annot, sequence_path, frame)
+        annot, w, h, valid = get_annotations(dir_annot, basename(sequence_path), frame)
         # The bounding box is written in terms of the x and y coordinate of the
         # top left corner in proportional terms of the sides of the whole picture.
         # So to get the pixel values for it one must multiply the x dimensions

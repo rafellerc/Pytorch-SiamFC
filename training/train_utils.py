@@ -15,7 +15,7 @@ def get_annotations(annot_dir, sequence_dir, frame_file):
         annot_dir (str): The root dir of annotation folders
         sequence_dir(str): The directory in which frame is located, relative to
         root directory
-        frame (str): The frame filename
+        frame_file (str): The frame filename
         i.e., sequence_identifier/frame_number.JPEG, or the full path.
     Return:
         annotation: (dictionary) A dictionary containing the four values of the
@@ -33,6 +33,7 @@ def get_annotations(annot_dir, sequence_dir, frame_file):
         are all None.
     """
     # Separate the sequence from the frame id using the OS path separator
+    
     frame_number = splitext(frame_file)[0]
     annot_path = join(annot_dir, sequence_dir, frame_number + '.xml')
     if isfile(annot_path):

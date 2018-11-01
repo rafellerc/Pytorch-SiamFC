@@ -36,6 +36,7 @@ import pyqtgraph as pg
 from appSiamFC.display import MainUI
 from appSiamFC.producer import ProducerThread
 
+
 pg.setConfigOptions(imageAxisOrder='row-major')
 
 IMAGENET = 'ILSVRC2015'
@@ -57,7 +58,7 @@ def parse_arguments():
                         "'val'")
     parser.add_argument('-n', '--net', default=DEFAULT_MODEL,
                         help="Full path the .pth.tar file containing the network's"
-                             "weights")
+                             " weights")
     parser.add_argument('-p', '--prior_width', default=None, type=int,
                         help="The standard deviation of the gaussian displacement"
                         "prior probability that will be applied to the score map,"
