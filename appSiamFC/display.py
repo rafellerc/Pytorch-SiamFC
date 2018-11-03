@@ -11,7 +11,8 @@ from appSiamFC.app_utils import make_gaussian_map, rgb2gray
 
 class MainUI(object):
 
-    def __init__(self, MainWindow, buffer, disp_prior=None, exit_on_end=False):
+    def __init__(self, MainWindow, buffer, disp_prior=None, exit_on_end=False,
+                 alpha=0.7):
         """
         """
         self.alive = True
@@ -85,7 +86,7 @@ class MainUI(object):
         # The alpha parameter is used to overlay the score map with the image,
         # where alpha=1 corresponds to the score_map alone and alpha=0 is
         # the image alone.
-        self.alpha = 0.7
+        self.alpha = alpha
 
         self.error_plot = MainWindow.addPlot(5, 0, colspan=3,
                                              title='Center Error (pixels)')

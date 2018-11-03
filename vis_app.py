@@ -79,8 +79,22 @@ def parse_arguments():
                         "the target, using the bounding box dimensions. The 'max'"
                         "mode uses the biggest dimension, while the 'mean' mode"
                         "uses the mean of the dimensions.")
+    parser.add_argument('-a', '--alpha', default=0.7, type=restricted_float,
+                        help="The alpha value is the proportion of intensity "
+                        "of the score map in the mixture with the frame pixels. "
+                        "Set alpha to 1 to have only the score map intensity "
+                        "displayed, and 0 to have only the sequence's frames "
+                        "displayed. Alpha must be between 0 and 1.")
+    
     args = parser.parse_args()
     return args
+
+
+def restricted_float(x):
+    x = float(x)
+    if x < 0.0 or x > 1.0:
+        raise argparse.ArgumentTypeError("%r not in range [0.0, 1.0]"%(x,))
+    return x
 
 
 def update():
@@ -101,7 +115,7 @@ if __name__ == '__main__':
     win = pg.GraphicsLayoutWidget(border=True)
 
     display = MainUI(win, BUFFER, disp_prior=args.prior_width,
-                     exit_on_end=args.exit_on_end)
+                     exit_on_end=args.exit_on_end, alpha=args.alpha)
     producer = ProducerThread(args.seq, BUFFER, args.data_dir, args.net,
                               set_type=args.type, branch_arch=args.branch,
                               ctx_mode=args.ctx_mode)
