@@ -5,6 +5,7 @@ from threading import Thread
 from collections import namedtuple
 import torch
 import torch.nn.functional as F
+from torch import sigmoid
 
 import training.models as mdl
 from appSiamFC.app_utils import get_sequence, make_gaussian_map
@@ -221,7 +222,7 @@ class ProducerThread(Thread):
         dimy = score_map.shape[-2]
         score_map = score_map.view(-1, dimy, dimx)
         if mode == 'sigmoid':
-            score_map = F.sigmoid(score_map)
+            score_map = sigmoid(score_map)
         elif mode == 'norm':
             score_map = score_map - score_map.min()
             score_map = score_map/score_map.max()
