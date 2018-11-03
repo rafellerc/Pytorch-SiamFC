@@ -289,7 +289,55 @@ targets.
         </figcaption>
     </figure>
 </center>
-[Coming Soon]
+
+I've also developped a visualization application to see the output of the network in real time. The objective is to observe the merits and limitations of the network **as a similarity function**, **NOT** to evaluate nor visualize the complete tracker.
+
+The vis_app simply compares the reference embedding **with the whole frame** for each frame in a given sequence, instead of comparing it with a restricted area like the tracker. The basic pipeline is:
+
+* Get the first frame in which the target appears.
+* Calculate a resizing factor such that the reference image (bounding box + context region) has 127 pixels, just as during training. All the subsequent frames will be resized as well.
+* Pass the reference image through the embedding branch to get the reference embedding. There is **no update** of the reference embedding.
+* For each frame of the sequence we patch the sides with zeros, so that the output dimensions of the score map have the same dimensions as the frame itself.
+* Convolve the the ref embedding with the frame's embedding (which can be quite big) to get the full score map. The score map is upscaled to "undo" the effect of the stride and is overlaid over the frame. The score map's intensity is encoded to color with the [inferno colormap](https://matplotlib.org/users/colormaps.html).
+* We also plot in each frame the peak of the score map as the network's guess of the current target position. We plot the Center Error curve as well.     
+
+The application is implemented using two threads: the **display thread** that takes care of the GUI and the **producer thread** that does all the computations. 
+
+<center>
+    <figure>
+        <img src="images/first_line.png" height="60%" width="100%">
+        <figcaption> In the top of the window we show the current fps rate of the display; the visibility status of the target (true if the target is inside the frame); and the number of frames in the buffer that stores the frames produced by the produced thread. 
+        </figcaption>
+    </figure>
+</center>
+
+<center>
+    <figure>
+        <img src="images/second_line.png" height="60%" width="80%">
+        <figcaption> In the bottom of this image we have the full path to the current frame; the reference image shows the image being used as reference by the network; The ground truth shows the current frame with the bounding box overlaid; and the Score Map shows the score map calculated by the network over the current frame, the amount of each can be controlled with an <b>alpha argument</b>. A green cross is placed in the peak of the score map.
+        </figcaption>
+    </figure>
+</center>
+
+<center>
+    <figure>
+        <img src="images/third_line.png" height="60%" width="100%">
+        <figcaption> Finally we have a plot of the Center Error per frame, being the distance between the score map's peak and the center of the ground thruth bounding box. We Draw a blue line in 63 pixels (half of the Reference Image side), that serves as a threshold over which the position might be outside the bounding box. 
+        </figcaption>
+    </figure>
+</center>
+
+### How to Run - Visualization Application
+
+Assuming the ImageNet VID dataset is the path \<ILSVRC>, and that the PyQt5 and pyqtgraph packages are installed: 
+```
+# -d is the path to the dataset and -n the path to the model's file.
+python vis_app.py -d <ILSVRC> -n BaselinePretrained.pth.tar -t train -s 10
+```
+Also, the sequences are separated into `train` and `val` sequences according to the dataset's organization, and numbered in increasing order. So to get the 150th training sequence, use the arguments `-t train -s 149` (index starts at zero). The `train` sequences range from 0 to 3861 and the `val` from 0 to 554.
+
+You can also set the alpha value from 0.0 to 1.0, that controls how much of the frame is overlaid with the score map. To get the score map without the frame behind it use the argument `-a 1`. To see all the arguments use `python vis_app.py -h`   
+
 
 ## Parameters
 
