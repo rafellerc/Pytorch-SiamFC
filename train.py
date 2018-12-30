@@ -208,7 +208,7 @@ def main(args):
                                              " a model checkpoint to be loaded"
                                              " and evaluated."
                                              " E.g: --restore_file best")
-                checkpoint_path = join(exp_dir, args.restore_file + 'pth.tar')
+                checkpoint_path = join(exp_dir, args.restore_file + '.pth.tar')
                 train_utils.load_checkpoint(checkpoint_path, model)
                 # Evaluate
                 summ_maker.epoch = 0
