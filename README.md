@@ -336,3 +336,5 @@ of the basic parameters:
 ### Loss Definition
 
 [Coming Soon]
+
+This work was partly done during an internship at Parrot Drones.
