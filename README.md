@@ -337,4 +337,5 @@ of the basic parameters:
 
 [Coming Soon]
 
-This work was partly done during an internship at Parrot Drones.
+ACKNOWLEDGEMENTS:
+This project was originally developed and open-sourced by Parrot Drones SAS.
