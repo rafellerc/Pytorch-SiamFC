@@ -459,8 +459,8 @@ class ImageNetVID_val(ImageNetVID):
         """ Creates the list of pairs of reference and search images in the
         val dataset. It follows the same general rules for choosing pairs as the
         train dataset, but it does it in initialization time instead of
-        train/val time. Morover it seeds the random module with a fixed seed to
-        get the same choice of pairs across diferent executions.
+        train/val time. Moreover it seeds the random module with a fixed seed to
+        get the same choice of pairs across different executions.
         Returns:
             list_pairs: (list) A list with all the choosen pairs. It consists
                 of a list of tuples with 3 elements each: the index inside the
@@ -472,9 +472,9 @@ class ImageNetVID_val(ImageNetVID):
         # Seed random lib to get consistent values
         random.seed(100)
         list_pairs = []
-        for idx in self.list_idx:
-            for frame_idx in range(len(self.frames[idx])):
-                list_pairs.append([idx, *super().get_pair(idx, frame_idx)])
+        for seq_idx, seq in enumerate(self.frames):
+            for frame_idx in range(len(seq)):
+                list_pairs.append([seq_idx, *super().get_pair(seq_idx, frame_idx)])
         random.shuffle(list_pairs)
         # Reseed the random module to avoid disrupting any external use of it.
         random.seed()
