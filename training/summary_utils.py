@@ -128,8 +128,7 @@ class SummaryMaker():
         if len(img.shape) == 4:
             img = img[0]
         # Normalize the image.
-        img = img - img.min()
-        img = img/img.max()
+        img = img/255
         embed = cm.apply_cmap(embed, cmap=cmap)
         # Get grayscale version of image by taking the weighted average of the channels
         # as described in https://www.cs.virginia.edu/~vicente/recognition/notebooks/image_processing_lab.html#2.-Converting-to-Grayscale
@@ -162,6 +161,7 @@ class SummaryMaker():
         final_imgs = torch.cat((img, final_imgs))
         if add_ref is not None:
             # Pads the image if necessary
+            add_ref = add_ref/255
             pad = int((img.shape[-1] - add_ref.shape[-1])//2)
             add_ref = F.pad(add_ref, (pad, pad, pad, pad), 'constant', 0)
             add_ref = add_ref.unsqueeze(0)

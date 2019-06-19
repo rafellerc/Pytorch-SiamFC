@@ -324,8 +324,8 @@ class ImageNetVID(Dataset):
         ref_w = (ref_annot['xmax'] - ref_annot['xmin'])/2
         ref_h = (ref_annot['ymax'] - ref_annot['ymin'])/2
         ref_ctx_size = self.ref_context_size(ref_h, ref_w)
-        ref_cx = (ref_annot['xmax']+ref_annot['xmin'])/2
-        ref_cy = (ref_annot['ymax']+ref_annot['ymin'])/2
+        ref_cx = (ref_annot['xmax'] + ref_annot['xmin'])/2
+        ref_cy = (ref_annot['ymax'] + ref_annot['ymin'])/2
 
         ref_frame = self.img_read(reference_frame_path)
         ref_frame = np.float32(ref_frame)
